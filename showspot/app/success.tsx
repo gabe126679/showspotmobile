@@ -1,141 +1,116 @@
 import { useEffect, useState } from 'react';
 import {
+  SafeAreaView,
   StyleSheet,
   Text,
   View,
+  Image,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  NavigationProp,
-} from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../App';
 
-type RootStackParamList = {
-  Success: { name?: string };
-  Welcome: undefined;
-};
+type Props = NativeStackScreenProps<RootStackParamList, 'Success'>;
 
-type SuccessScreenRouteParams = {
-  Success: { name?: string };
-};
+const screenWidth = Dimensions.get('window').width;
 
-export default function Success() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<SuccessScreenRouteParams, 'Success'>>();
-  const passedName = route.params?.name;
-  const [name, setName] = useState<string | undefined>(passedName);
-  const [loading, setLoading] = useState(!passedName);
-  const [signingOut, setSigningOut] = useState(false);
+export default function Success({ route, navigation }: Props) {
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch name from Supabase if not passed via route
   useEffect(() => {
-    const fetchName = async () => {
-      try {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+    const fetchProfileImage = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
 
-        if (sessionError || !session?.user) {
-          throw new Error('No active session');
-        }
-
+      if (user) {
         const { data, error } = await supabase
           .from('spotters')
-          .select('full_name')
-          .eq('id', session.user.id)
+          .select('spotter_profile_picture')
+          .eq('id', user.id)
           .single();
 
-        if (error || !data?.full_name) {
-          throw error || new Error('Name not found');
+        if (error) {
+          console.error('Error fetching profile picture:', error);
+        } else {
+          setProfileUrl(data?.spotter_profile_picture ?? null);
         }
-
-        setName(data.full_name);
-      } catch (err) {
-        console.error('Name fetch failed:', err);
-        setName(undefined);
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     };
 
-    if (!passedName) {
-      fetchName();
-    }
+    fetchProfileImage();
   }, []);
 
   const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Welcome' }],
-      });
-    } catch (err: any) {
-      Alert.alert('Sign Out Error', err.message || 'Something went wrong');
-    } finally {
-      setSigningOut(false);
-    }
+    await supabase.auth.signOut();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#ff00ff" />
-      ) : (
-        <>
-          <Text style={styles.title}>Welcome, {name || 'Spotter'}! 🎉</Text>
-          <Text style={styles.message}>Your account was successfully created.</Text>
+      <Text style={styles.title}>Welcome, {route.params.name}!</Text>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignOut} disabled={signingOut}>
-            <Text style={styles.buttonText}>
-              {signingOut ? 'Signing Out...' : 'Sign Out'}
-            </Text>
-          </TouchableOpacity>
-        </>
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : profileUrl ? (
+        <Image
+          source={{ uri: profileUrl }}
+          style={styles.image}
+        />
+      ) : (
+        <Text style={styles.placeholderText}>No profile picture uploaded</Text>
       )}
+
+      <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+        <Text style={styles.buttonText}>Sign Out</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 100,
+    backgroundColor: '#fff',
+    padding: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Amiko-Regular',
-    color: '#000',
+    fontSize: 26,
+    fontWeight: '600',
     marginBottom: 20,
+    color: '#2a2882',
   },
-  message: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'Amiko-Regular',
-    textAlign: 'center',
-    marginBottom: 40,
+  image: {
+    width: screenWidth - 40,
+    height: screenWidth - 40,
+    borderRadius: 16,
+    resizeMode: 'cover',
+    marginBottom: 30,
+  },
+  placeholderText: {
+    color: '#999',
+    marginVertical: 30,
+    fontStyle: 'italic',
   },
   button: {
-    backgroundColor: '#ff00ff',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 12,
+    backgroundColor: '#2a2882',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
   },
   buttonText: {
     color: '#fff',
+    fontWeight: '600',
     fontSize: 16,
-    fontFamily: 'Amiko-Regular',
   },
 });

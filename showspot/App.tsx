@@ -7,6 +7,7 @@ import LogIn from "./app/login";
 import Signup from "./app/signup";
 import Success from "./app/success";
 import Failure from "./app/failure";
+import Picture from "./app/picture";
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
   Signup: undefined;
   Success: { name: string };
   Failure: undefined;
+  Picture: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,6 +29,7 @@ export default function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Success" component={Success} />
         <Stack.Screen name="Failure" component={Failure} />
+        <Stack.Screen name="Picture" component={Picture} />
       </Stack.Navigator>
     </NavigationContainer>
   );
