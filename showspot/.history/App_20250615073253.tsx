@@ -9,10 +9,10 @@ import Success from "./app/success";
 import Failure from "./app/failure";
 import Picture from "./app/picture";
 import Profile from "./components/profile";
+import Home from "./components/home";
 import Search from "./components/search";
 import Create from "./components/create";
 import Player from "./components/player";
-import MapHome from "./components/mapHome";
 import { UserProvider } from "./context/userContext"; 
 // 👈 import context
 
@@ -20,30 +20,30 @@ export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
   Signup: undefined;
-  Success: undefined;
+  Success: { name: string };
   Failure: undefined;
   Picture: undefined;
-  MapHome: undefined;
+  Profile: undefined;
+  Home: undefined;
   Search: undefined;
   Create: undefined;
   Player: undefined;
-  Profile: { name: string };
 };
 
-console.log("Home Component:", Map);
+console.log("Home Component:", Home);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
 
-  console.log("Home Component:", Map);
-
+  console.log("Home Component:", Home);
+  
   return (
     <UserProvider>
       <NavigationContainer>
         <Stack.Navigator
           id={undefined}
-          initialRouteName="Welcome"
+          initialRouteName="Profile"
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -53,7 +53,7 @@ export default function App() {
           <Stack.Screen name="Failure" component={Failure} />
           <Stack.Screen name="Picture" component={Picture} />
           <Stack.Screen name="Profile" component={Profile} />
-          <Stack.Screen name="MapHome" component={MapHome} />
+          <Stack.Screen name="Home" component={Home} />
           <Stack.Screen name="Search" component={Search} />
           <Stack.Screen name="Create" component={Create} />
           <Stack.Screen name="Player" component={Player} />
