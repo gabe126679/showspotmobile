@@ -19,7 +19,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../App';
 
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Picture'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function Picture({ navigation }: Props) {
   const [image, setImage] = useState<{ uri: string; type: string } | null>(null);
@@ -123,7 +123,7 @@ const uploadAndContinue = async () => {
       throw new Error('Failed to update profile.');
     }
 
-    navigation.navigate('Success', { name });
+    navigation.navigate('Profile', { name });
   } catch (err: any) {
     Alert.alert('Upload Failed', err.message || 'Something went wrong.');
   } finally {
